@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Khám phá Mặt Trăng</title>
+
+<style>
+body{
+  margin:0;
+  background:black;
+  color:#FFD966;
+  font-family:"Comic Sans MS",Arial;
+  text-align:center;
+  touch-action:none;
+}
+h1,h2{margin:8px 0;text-shadow:0 0 6px #fff}
+button{
+  padding:14px 22px;
+  font-size:20px;
+  border:none;
+  border-radius:25px;
+  background:#FFD966;
+  cursor:pointer;
+  margin:8px;
+}
+canvas{display:block;margin:auto}
+
+/* ===== TRANG ===== */
+.page{display:none}
+.page.active{display:block}
+
+/* ===== PHA ===== */
+.phase-view{
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  margin:20px auto;
+  background:black;
+}
+.phase-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  padding:20px;
+}
+.phase-btn{
+  background:#333;
+  color:white;
+  border-radius:18px;
+  padding:12px;
+  font-size:18px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== TRANG 1 ===== -->
+<div id="page1" class="page active">
+  <h1>TRƯỜNG MẦM NON VĂN KHÊ A</h1>
+  <h2>🌙 Khám phá Mặt Trăng 🌙</h2>
+
+  <canvas id="space" width="800" height="500"></canvas>
+
+  <button onclick="showPage(2)">🌗 Xem các pha Mặt Trăng</button>
+</div>
+
+<!-- ===== TRANG 2 ===== -->
+<div id="page2" class="page">
+  <h1>🌙 Các pha Mặt Trăng 🌙</h1>
+
+  <div id="phaseView" class="phase-view"></div>
+
+  <div class="phase-grid">
+    <button class="phase-btn" onclick="setPhase(0,'Không trăng')">Không trăng</button>
+    <button class="phase-btn" onclick="setPhase(1,'Trăng lưỡi liềm đầu tháng')">Lưỡi liềm đầu</button>
+    <button class="phase-btn" onclick="setPhase(2,'Trăng bán nguyệt đầu tháng')">Bán nguyệt đầu</button>
+    <button class="phase-btn" onclick="setPhase(3,'Trăng khuyết đầu tháng')">Khuyết đầu</button>
+    <button class="phase-btn" onclick="setPhase(4,'Trăng tròn')">Trăng tròn</button>
+    <button class="phase-btn" onclick="setPhase(5,'Trăng khuyết cuối tháng')">Khuyết cuối</button>
+    <button class="phase-btn" onclick="setPhase(6,'Trăng bán nguyệt cuối tháng')">Bán nguyệt cuối</button>
+    <button class="phase-btn" onclick="setPhase(7,'Trăng lưỡi liềm cuối tháng')">Lưỡi liềm cuối</button>
+  </div>
+
+  <button onclick="showPage(1)">⬅ Quay lại</button>
+</div>
+
+<script>
+/* ===== CHUYỂN TRANG ===== */
+function showPage(n){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById("page"+n).classList.add("active");
+}
+
+/* ===== GIỌNG ĐỌC ===== */
+function speak(text){
+  const msg=new SpeechSynthesisUtterance(text);
+  msg.lang="vi-VN";
+  msg.rate=0.9;
+  msg.pitch=1.1;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(msg);
+}
+
+/* ===== TRANG 1: VẼ SINH ĐỘNG ===== */
+const canvas=document.getElementById("space");
+const ctx=canvas.getContext("2d");
+const earthX=420,earthY=270,orbitRadius=150;
+let angle=-Math.PI/4,drag=false;
+
+/* 🌞 MẶT TRỜI DỄ THƯƠNG */
+function sun(){
+  for(let i=0;i<12;i++){
+    const a=i*Math.PI/6;
+    ctx.strokeStyle="#FFD93D";
+    ctx.lineWidth=5;
+    ctx.beginPath();
+    ctx.moveTo(120+Math.cos(a)*45,earthY+Math.sin(a)*45);
+    ctx.lineTo(120+Math.cos(a)*70,earthY+Math.sin(a)*70);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.arc(120,earthY,42,0,Math.PI*2);
+  ctx.fillStyle="#FFEB3B";
+  ctx.fill();
+
+  // mặt
+  ctx.fillStyle="#333";
+  ctx.beginPath();
+  ctx.arc(110,earthY-8,4,0,Math.PI*2);
+  ctx.arc(130,earthY-8,4,0,Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(120,earthY+6,10,0,Math.PI);
+  ctx.stroke();
+}
+
+/* 🌍 TRÁI ĐẤT */
+function earth(){
+  const g=ctx.createRadialGradient(earthX-20,earthY-20,20,earthX,earthY,70);
+  g.addColorStop(0,"#81D4FA");
+  g.addColorStop(1,"#1976D2");
+  ctx.beginPath();
+  ctx.arc(earthX,earthY,65,0,Math.PI*2);
+  ctx.fillStyle=g;
+  ctx.fill();
+
+  // lục địa
+  ctx.fillStyle="#66BB6A";
+  ctx.beginPath();
+  ctx.ellipse(earthX-10,earthY,30,18,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(earthX+20,earthY-20,18,12,0,0,Math.PI*2);
+  ctx.fill();
+}
+
+/* 🌙 MẶT TRĂNG */
+function moon(x,y){
+  ctx.beginPath();
+  ctx.arc(x,y,28,0,Math.PI*2);
+  ctx.fillStyle="#ECEFF1";
+  ctx.fill();
+
+  // mặt
+  ctx.fillStyle="#555";
+  ctx.beginPath();
+  ctx.arc(x-6,y-4,3,0,Math.PI*2);
+  ctx.arc(x+6,y-4,3,0,Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x,y+4,6,0,Math.PI);
+  ctx.stroke();
+}
+
+/* QUỸ ĐẠO */
+function orbit(){
+  ctx.beginPath();
+  ctx.arc(earthX,earthY,orbitRadius,0,Math.PI*2);
+  ctx.strokeStyle="rgba(255,215,0,0.6)";
+  ctx.lineWidth=6;
+  ctx.stroke();
+}
+
+/* KÉO */
+canvas.onpointerdown=e=>{
+  const r=canvas.getBoundingClientRect();
+  const x=e.clientX-r.left,y=e.clientY-r.top;
+  const mx=earthX+orbitRadius*Math.cos(angle);
+  const my=earthY+orbitRadius*Math.sin(angle);
+  if(Math.hypot(x-mx,y-my)<35) drag=true;
+};
+canvas.onpointerup=()=>drag=false;
+canvas.onpointermove=e=>{
+  if(!drag)return;
+  const r=canvas.getBoundingClientRect();
+  angle=Math.atan2(e.clientY-r.top-earthY,e.clientX-r.left-earthX);
+};
+
+/* VẼ */
+function draw(){
+  ctx.clearRect(0,0,800,500);
+  sun();orbit();earth();
+  moon(
+    earthX+orbitRadius*Math.cos(angle),
+    earthY+orbitRadius*Math.sin(angle)
+  );
+  requestAnimationFrame(draw);
+}
+draw();
+
+/* ===== TRANG 2 ===== */
+const phaseView=document.getElementById("phaseView");
+const phaseStyles=[
+  "black",
+  "linear-gradient(to right, black 70%, white 70%)",
+  "linear-gradient(to right, black 50%, white 50%)",
+  "linear-gradient(to right, black 25%, white 25%)",
+  "white",
+  "linear-gradient(to right, white 75%, black 75%)",
+  "linear-gradient(to right, white 50%, black 50%)",
+  "linear-gradient(to right, white 30%, black 30%)"
+];
+function setPhase(i,name){
+  phaseView.style.background=phaseStyles[i];
+  speak(name);
+}
+</script>
+
+</body>
+</html>
